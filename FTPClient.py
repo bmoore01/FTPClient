@@ -45,7 +45,7 @@ def main():
         print "Closing program."
         sys.exit()
 
-
+    print "Welcome to " + session.host
     print "You have connected to " + str(session.host) + " the IP is " + str(session.remote_ip) + " You are connected on port " + str(session.port)
     print "Socket connection complete!"
 
