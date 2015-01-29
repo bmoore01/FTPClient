@@ -1,7 +1,9 @@
 import socket
 import os
 import sys
+#Used for decoding
 import base64
+#Need to save decoded data required for the pickle.dump function
 import pickle
 
 
