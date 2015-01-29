@@ -10,8 +10,9 @@ def main():
     '''Socket creation and userinput for details of the socket connection
     are handled within this class'''
 
+    #class to define socket function to send a file so it can be used in a thread
 
-    class fileTransfer:
+    class fileSend:
         try:
             sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         except socket.error, msg:
@@ -38,14 +39,17 @@ def main():
             self.sock.connect((self.remote_ip, int(self.port)))
             print "Socket connection successful"
 
+
+
     print "Welcome to FTPy!"
     print 'Would you like to start a file tansfer?y/n :'
     start = raw_input(">>")
     if start[0].lower() == 'y':
-        session = fileTransfer(0,0,0)
+        session = fileSend(0,0,0)
         session.getConnectionInfo()
         session.connectSocket()
-        file_to_send = open("fileTransfer.txt","rt").read()
+        print "What file would you like to send?(Please include the file extention):"
+        file_to_send = open(raw_input(">>"),"rt").read()
         encoded_data = base64.b64encode(file_to_send)
         print "Before encoding file was " + str(len(file_to_send))
         try:

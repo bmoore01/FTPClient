@@ -2,6 +2,8 @@ import socket
 import os
 import sys
 import base64
+import pickle
+
 
 def main():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,7 +17,13 @@ def main():
         recieved_file = conn.recv(4096)
         decoded_file = base64.b64decode(recieved_file)
         print decoded_file
-
+        current_dir = os.getcwd()
+        print "Current working directory %s" % current_dir
+        fileName = "recieved file" + ".txt"
+        f = open (fileName,"wb")
+        pickle.dump(decoded_file,f)
+        f.close()
+        break
 
 
     sys.exit()
