@@ -1,11 +1,15 @@
 import socket
 import sys
+import base64
 #Used for exit command
 #Planning to implement classes into a module
 #import fileTransfer
 
 
 def main():
+    '''Socket creation and userinput for details of the socket connection
+    are handled within this class'''
+
 
     class fileTransfer:
         try:
@@ -41,6 +45,16 @@ def main():
         session = fileTransfer(0,0,0)
         session.getConnectionInfo()
         session.connectSocket()
+        file_to_send = open("fileTransfer.txt","rt").read()
+        encoded_data = base64.b64encode(file_to_send)
+        print "Before encoding file was " + str(len(file_to_send))
+        try:
+            #Attempt to send the file
+            session.sock.sendall(encoded_data)
+        except socket.error:
+            print 'Send failed'
+            sys.exit()
+        print 'File sent successfully!'
     elif start[0].lower() == 'n':
         print "Closing program."
         sys.exit()
