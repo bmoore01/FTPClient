@@ -35,7 +35,6 @@ def menu():
     else:
         print "That's not a valid response please try again"
     print "Operations complete"
-    #menu()
 
 def main():
     print "Welcome to"

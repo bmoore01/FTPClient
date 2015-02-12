@@ -8,6 +8,14 @@ from FTPClient import *
 import time
 #This file will contain all class definitions for the the FTPy progam
 
+'''These three variables count the connection, recieve and send errors the program
+comes across so they can provide information to the user that the sends have failed since
+they will be running in threads and printing to the screen in multiple threads causes all
+sorts of problems'''
+recv_errors = 0
+send_errors = 0
+conn_errors = 0
+
 tLock = threading.Lock()
 #This class contains all the methods needed to make a connection with a server or another client
 
@@ -33,10 +41,16 @@ class fileTrans:
               print self.remote_ip
           except socket.gaierror:
               #Line below for bug fixing
-              print "hostname could not resolve"
-              sys.exit()
+              print "hostname could not resolve, make sure you are connected to the internet"
+              conn_errors += 1
+              menu()
       def connectSocket(self):
-          self.sock.connect((self.remote_ip, int(self.port)))
+          try:
+              self.sock.connect((self.remote_ip, int(self.port)))
+          except:
+              print "Error connecting socket"
+              conn_errors += 1
+              menu()
           print "Socket connection successful"
 
 
@@ -48,65 +62,47 @@ class sendClass(fileTrans):
         print "Lock acquired"
         print "What file would you like to send?(Please include the file extention):"
         file_to_send = open(raw_input(">>"),"rt").read()
-        #raw_input("Press return to confirm send")
-        #tLock.release()
         self.encoded_data = base64.b64encode(file_to_send)
-        print "Before encoding file was " + str(len(file_to_send))
+        print "File sent successfully!"
     def sendFile(self):
-        '''tLock.acquire()
-        print "Lock acquired"
-        print "What file would you like to send?(Please include the file extention):"
-        file_to_send = open(raw_input(">>"),"rt").read()
-        #raw_input("Press return to confirm send")
-        #tLock.release()
-        encoded_data = base64.b64encode(file_to_send)
-        print "Before encoding file was " + str(len(file_to_send))
-        #tLock.release()'''
         tLock.acquire()
-        #print "lock acquired"
         try:
             #Attempt to send the file
             self.sock.sendall(self.encoded_data)
         except socket.error:
             #This error counter will be used down the line to display errors in the 'view your transfers' menu
-            errors += 1
+            send_errors += 1
             sys.exit()
-        #print "lock released!"
-        #print 'File sent successfully!'
         tLock.release()
-        #menu()
     def threadSend(self):
         t1 = threading.Thread(target=self.sendFile)
         t1.setDaemon(True)
         t1.start()
-        #t1.join()
 
 #This class is used in order to listen for incomming connections
 
 class recvClass(fileTrans):
     def recvFile(self):
+        tLock.acquire()
         self.sock.bind((self.host,int(self.port)))
         print "Socket binded!"
         self.sock.listen(10)
         print "Socket now listening..."
         while True:
+            tLock.release()
             conn, addr = self.sock.accept()
-            print "Recieving file from" + str(addr)
-            try:
-                recieved_file = conn.recv(4096)
-            except:
-                print "File recieving failed."
+            #print "Recieving file from" + str(addr)
+            recieved_file = conn.recv(4096)
             decoded_file = base64.b64decode(self.encoded_data)
             print self.encoded_data
             current_dir = os.getcwd()
-            print "Current working directory %s" % current_dir
+            #print "Current working directory %s" % current_dir
             fileName = "recieved file" + ".txt"
             f = open (fileName,"wb")
             pickle.dump(decoded_file,f)
             f.close()
             menu()
             break
-        #menu()
     def threadRecv(self):
         t2 = threading.Thread(target=self.recvFile)
         t2.setDaemon(True)
