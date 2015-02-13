@@ -4,6 +4,8 @@ import base64
 import threading
 import os
 import pickle
+import time
+
 #This file will contain all class definitions for the the FTPy progam
 
 '''These three variables count the connection, recieve and send errors the program
@@ -89,8 +91,8 @@ class recvClass(fileTrans):
         print "Socket binded!"
         self.sock.listen(10)
         print "Socket now listening..."
+        tLock.release()
         while True:
-            tLock.release()
             conn, addr = self.sock.accept()
             #print "Recieving file from" + str(addr)
             recieved_file = conn.recv(4096)
@@ -102,7 +104,6 @@ class recvClass(fileTrans):
             f = open (fileName,"wb")
             pickle.dump(decoded_file,f)
             f.close()
-            #menu()
             self.sock.close()
             break
     def threadRecv(self):
@@ -110,4 +111,3 @@ class recvClass(fileTrans):
         t2.setDaemon(True)
         t2.start()
         time.sleep(1)
-        menu()
