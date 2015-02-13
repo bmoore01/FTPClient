@@ -3,7 +3,6 @@ import sys
 import base64
 import threading
 import os
-import pickle
 import time
 
 #This file will contain all class definitions for the the FTPy progam
@@ -12,7 +11,6 @@ import time
 comes across so they can provide information to the user that the sends have failed since
 they will be running in threads and printing to the screen in multiple threads causes all
 sorts of problems'''
-recv_errors = 0
 send_errors = 0
 conn_errors = 0
 
@@ -102,7 +100,7 @@ class recvClass(fileTrans):
             #print "Current working directory %s" % current_dir
             fileName = "recieved file" + ".txt"
             f = open (fileName,"wb")
-            pickle.dump(decoded_file,f)
+            f.write(decoded_file)
             f.close()
             self.sock.close()
             break
