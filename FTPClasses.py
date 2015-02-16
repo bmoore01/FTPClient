@@ -3,14 +3,14 @@ import sys
 import base64
 import threading
 import os
-import pickle
+import time
+
 #This file will contain all class definitions for the the FTPy progam
 
 '''These three variables count the connection, recieve and send errors the program
 comes across so they can provide information to the user that the sends have failed since
 they will be running in threads and printing to the screen in multiple threads causes all
 sorts of problems'''
-recv_errors = 0
 send_errors = 0
 conn_errors = 0
 
@@ -46,8 +46,8 @@ class fileTrans:
               self.sock.connect((self.remote_ip, int(self.port)))
           except:
               print "Error connecting socket"
-              conn_errors += 1
-              menu()
+              #conn_errors += 1
+              #menu()
           print "Socket connection successful"
 
 
@@ -71,7 +71,8 @@ class sendClass(fileTrans):
             self.sock.sendall(encoded_data)
         except socket.error:
             #This error counter will be used down the line to display errors in the 'view your transfers' menu
-            send_errors += 1
+            print "File sending error!"
+            #send_errors += 1
             sys.exit()
         #tLock.release()
         print 'File sent successfully!'
@@ -89,8 +90,8 @@ class recvClass(fileTrans):
         print "Socket binded!"
         self.sock.listen(10)
         print "Socket now listening..."
+        tLock.release()
         while True:
-            tLock.release()
             conn, addr = self.sock.accept()
             #print "Recieving file from" + str(addr)
             recieved_file = conn.recv(4096)
@@ -98,11 +99,10 @@ class recvClass(fileTrans):
             print recieved_file
             current_dir = os.getcwd()
             #print "Current working directory %s" % current_dir
-            fileName = "recieved file" + ".txt"
+            fileName = "recieved file" + ".jpg"
             f = open (fileName,"wb")
-            pickle.dump(decoded_file,f)
+            f.write(decoded_file)
             f.close()
-            #menu()
             self.sock.close()
             break
     def threadRecv(self):
@@ -110,4 +110,3 @@ class recvClass(fileTrans):
         t2.setDaemon(True)
         t2.start()
         time.sleep(1)
-        menu()
