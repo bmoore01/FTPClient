@@ -40,7 +40,9 @@ def main():
     print "|  _|   | | |  __/| |_| |_|"
     print "|_|     |_| |_|    \__, (_)"
     print "                   |___/   "
-
+    clientHandlers =[]
+    send_errors = 0
+    conn_errors = 0
     menu()
 
 
