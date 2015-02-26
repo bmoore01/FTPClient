@@ -66,11 +66,13 @@ class sendClass(fileTrans):
         print "File sent successfully!"
     def sendFile(self):
         print "What file would you like to send?(Please include the file extention):"
-        file_to_send = open(raw_input(">>"),"rt").read()
+        file_name = raw_input(">>")
+        file_to_send = open(file_name,"rt").read()
         encoded_data = base64.b64encode(file_to_send)
+        package = file_name + ':' + encoded_data
         try:
             #Attempt to send the file
-            self.sock.sendall(encoded_data)
+            self.sock.sendall(package)
         except socket.error:
             #This error counter will be used down the line to display errors in the 'view your transfers' menu
             #send_errors += 1
@@ -100,15 +102,17 @@ class recvClass(fileTrans):
         while True:
             #print "Recieving file from" + str(addr)
             part = None
-            recieved_file = ""
+            recieved_package = ""
             while part != '':
                 part = conn.recv(1024)
-                recieved_file += part
+                recieved_package += part
+            file_name,recieved_file = recieved_package.split(':')
+            file_name = file_name[:len(file_name)]
             decoded_file = base64.b64decode(recieved_file)
             current_dir = os.getcwd()
             #print "Current working directory %s" % current_dir
             fileName = "recieved file" + ".jpg"
-            f = open (fileName,"wb")
+            f = open (file_name,"wb")
             f.write(decoded_file)
             f.close()
             break
