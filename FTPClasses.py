@@ -4,8 +4,11 @@ import base64
 import threading
 import os
 import time
+#This file will contain all class definitions for the the FTPy program
 from FTPClient import *
-#This file will contain all class definitions for the the FTPy progam
+
+#These two lists will hold the threads which are created
+#when the user tells the program to send or recieve a file
 sendClientHandlers = []
 recvClientHandlers = []
 
@@ -30,8 +33,8 @@ class fileTrans:
           print"Please enter the address for the server you're trying to connect to"
           self.host = raw_input(">>")
           #If statement used just for making testing easier
-          if len(str(self.host)) == 0:
-              self.host = "127.0.0.1"
+          '''if len(str(self.host)) == 0:
+              self.host = "127.0.0.1"'''
           print "Now enter the port you want to use(If no port is entered system will default to port 8080)"
           self.port = raw_input(">>")
           if len(str(self.port)) == 0:
@@ -42,15 +45,13 @@ class fileTrans:
           except socket.gaierror:
               #Line below for bug fixing
               print "hostname could not resolve, make sure you are connected to the internet"
-              conn_errors += 1
               menu()
       def connectSocket(self):
           try:
               self.sock.connect((self.remote_ip, int(self.port)))
           except:
               print "Error connecting socket"
-              #conn_errors += 1
-              #menu()
+              menu()
           print "Socket connections successful"
 
 
@@ -74,10 +75,8 @@ class sendClass(fileTrans):
             #Attempt to send the file
             self.sock.sendall(package)
         except socket.error:
-            #This error counter will be used down the line to display errors in the 'view your transfers' menu
-            #send_errors += 1
+            print "The socket sending has failed"
             sys.exit()
-        #tLock.release()
         print 'File sent successfully!'
     def threadSend(self):
         t1 = threading.Thread(target=self.sendFile)
@@ -100,7 +99,6 @@ class recvClass(fileTrans):
         tLock.release()
         conn, addr = self.sock.accept()
         while True:
-            #print "Recieving file from" + str(addr)
             part = None
             recieved_package = ""
             while part != '':
@@ -109,9 +107,6 @@ class recvClass(fileTrans):
             file_name,recieved_file = recieved_package.split(':')
             file_name = file_name[:len(file_name)]
             decoded_file = base64.b64decode(recieved_file)
-            current_dir = os.getcwd()
-            #print "Current working directory %s" % current_dir
-            fileName = "recieved file" + ".jpg"
             f = open (file_name,"wb")
             f.write(decoded_file)
             f.close()
