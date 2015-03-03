@@ -27,7 +27,7 @@ class fileTrans:
           print "Failed to create sockets, error code : " + str(msg[0]) + " Error message : " + str(msg[1])
       def __init__(self,host,port,remote_ip):
           self.host = host
-          self.port = port
+          self.port = 20
           self.remote_ip = remote_ip
       def getConnectionInfo(self):
           print"Please enter the address for the server you're trying to connect to"
@@ -35,10 +35,6 @@ class fileTrans:
           #If statement used just for making testing easier
           '''if len(str(self.host)) == 0:
               self.host = "127.0.0.1"'''
-          print "Now enter the port you want to use(If no port is entered system will default to port 8080)"
-          self.port = raw_input(">>")
-          if len(str(self.port)) == 0:
-              self.port = "8080"
           try:
               self.remote_ip = socket.gethostbyname( self.host )
               print self.remote_ip
@@ -48,7 +44,7 @@ class fileTrans:
               menu()
       def connectSocket(self):
           try:
-              self.sock.connect((self.remote_ip, int(self.port)))
+              self.sock.connect((self.remote_ip, self.port))
           except:
               print "Error connecting socket"
               menu()
@@ -92,7 +88,7 @@ class sendClass(fileTrans):
 class recvClass(fileTrans):
     def recvFile(self):
         tLock.acquire()
-        self.sock.bind((self.host,int(self.port)))
+        self.sock.bind((self.host,self.port))
         #print "Socket binded!"
         self.sock.listen(10)
         #print "Socket now listening..."
