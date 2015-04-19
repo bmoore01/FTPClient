@@ -4,6 +4,7 @@ import base64
 import threading
 import os
 import time
+import tarfile
 #This file will contain all class definitions for the the FTPy program
 from FTPClient import *
 
@@ -11,6 +12,8 @@ from FTPClient import *
 #when the user tells the program to send or recieve a file
 sendClientHandlers = []
 recvClientHandlers = []
+kill = None
+stop = None
 
 '''These three variables count the connection, recieve and send errors the program
 comes across so they can provide information to the user that the sends have failed since
@@ -19,6 +22,7 @@ sorts of problems'''
 
 tLock = threading.Lock()
 #This class contains all the methods needed to make a connection with a server or another client
+
 
 class fileTrans:
       try:
@@ -29,6 +33,7 @@ class fileTrans:
           self.host = host
           self.port = 20
           self.remote_ip = remote_ip
+          self.load = loading_screen()
       def getConnectionInfo(self):
           print"Please enter the address for the server you're trying to connect to"
           self.host = raw_input(">>")
@@ -56,7 +61,6 @@ class fileTrans:
 
 class sendClass(fileTrans):
     def getSendInfo(self):
-        print "Lock acquired"
         print "What file would you like to send?(Please include the file extention):"
         file_to_send = open(raw_input(">>"),"rt").read()
         self.encoded_data = base64.b64encode(file_to_send)
@@ -67,13 +71,20 @@ class sendClass(fileTrans):
         file_to_send = open(file_name,"rt").read()
         encoded_data = base64.b64encode(file_to_send)
         package = file_name + ':' + encoded_data
+        global kill
+        global stop
+        kill = False
+        stop = False
+        self.load.start()
         try:
             #Attempt to send the file
             self.sock.sendall(package)
-        except socket.error:
-            print "The socket sending has failed"
+            time.sleep(1)
+            stop = True
+        except socket.error or KeyboardInterrupt:
+            kill = True
+            stop = True
             sys.exit()
-        print 'File sent successfully!'
     def threadSend(self):
         t1 = threading.Thread(target=self.sendFile)
         global sendClientHandlers
@@ -117,3 +128,28 @@ class recvClass(fileTrans):
         t2.start()
         t2 = None
         time.sleep(1)
+
+class loading_screen(threading.Thread):
+    def run(self):
+        global stop
+        global kill
+        print "File currently sending..."
+        sys.stdout.flush()
+        i = 0
+        while stop != True:
+            if (i%4) == 0:
+                sys.stdout.write('\b/')
+            elif (i%4) == 1:
+                sys.stdout.write('\b-')
+            elif (i%4) == 2:
+                sys.stdout.write('\b\\')
+            elif (i%4) == 3:
+                sys.stdout.write('\b|')
+
+            sys.stdout.flush()
+            time.sleep(0.2)
+            i+=1
+        if kill == True:
+            print '\b\b\b\b File sending canceled!'
+        else:
+            print '\b\b File sending completed!'

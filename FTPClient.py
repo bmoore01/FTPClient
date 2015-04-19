@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from FTPClasses import *
 import threading
 
@@ -23,6 +24,10 @@ def menu():
         r_session = recvClass(0,0,0)
         r_session.getConnectionInfo()
         r_session.threadRecv()
+        menu()
+    elif int(start) == 3:
+        print "Threads active: " + str(threading.activeCount())
+        raw_input("Press return to contiue")
         menu()
     elif int(start) == 4:
         print "Closing progam..."
