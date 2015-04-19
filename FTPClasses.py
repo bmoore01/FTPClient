@@ -12,8 +12,10 @@ from FTPClient import *
 #when the user tells the program to send or recieve a file
 sendClientHandlers = []
 recvClientHandlers = []
+activeRecvHosts = []
 kill = None
 stop = None
+create_class_failed = None
 
 '''These three variables count the connection, recieve and send errors the program
 comes across so they can provide information to the user that the sends have failed since
@@ -29,14 +31,34 @@ class fileTrans:
           sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
       except socket.error, msg:
           print "Failed to create sockets, error code : " + str(msg[0]) + " Error message : " + str(msg[1])
-      def __init__(self,host,port,remote_ip):
+      def __init__(self,host,port,remote_ip,sender):
           self.host = host
           self.port = 20
           self.remote_ip = remote_ip
           self.load = loading_screen()
+          self.sender = sender
       def getConnectionInfo(self):
           print"Please enter the address for the server you're trying to connect to"
           self.host = raw_input(">>")
+          global activeRecvHosts
+          for address in activeRecvHosts:
+              if self.host == address:
+                  print "This client is already listening for that address"
+                  if self.port == address:
+                      print "the default FTP port (port20) port is already in use would you like to select another port?y/n"
+                      select_port = Raw_input('->')
+                      if select_port[0:].lower() == 'y':
+                          print "Please enter the port you'd like to use"
+                          self.port = raw_input('->')
+                      elif select_port[0:].lower() == 'n':
+                          print "Returning to main menu"
+                          global create_class_failed
+                          create_class_failed = True
+                  global create_class_failed
+                  create_class_failed = True
+          if self.host not in activeRecvHosts:
+              activeRecvHosts.append(self.host)
+              activeRecvHosts.append(self.port)
           #If statement used just for making testing easier
           '''if len(str(self.host)) == 0:
               self.host = "127.0.0.1"'''
@@ -99,6 +121,9 @@ class sendClass(fileTrans):
 class recvClass(fileTrans):
     def recvFile(self):
         tLock.acquire()
+        global create_class_failed
+        if create_class_failed == True:
+            menu()
         self.sock.bind((self.host,self.port))
         #print "Socket binded!"
         self.sock.listen(10)
@@ -121,13 +146,17 @@ class recvClass(fileTrans):
         conn.close()
         self.sock.close()
     def threadRecv(self):
-        t2 = threading.Thread(target=self.recvFile)
-        global recvClientHandlers
-        recvClientHandlers.append(t2)
-        t2.setDaemon(True)
-        t2.start()
-        t2 = None
-        time.sleep(1)
+        global create_class_failed
+        if create_class_failed == True:
+            menu()
+        else:
+            t2 = threading.Thread(target=self.recvFile)
+            global recvClientHandlers
+            recvClientHandlers.append(t2)
+            t2.setDaemon(True)
+            t2.start()
+            t2 = None
+            time.sleep(1)
 
 class loading_screen(threading.Thread):
     def run(self):

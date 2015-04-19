@@ -16,17 +16,20 @@ def menu():
             start = raw_input(">>")
             i += 1
     if int(start) == 1:
-        session = sendClass(0,0,0)
+        session = sendClass(0,0,0,True)
         session.getConnectionInfo()
         session.connectSocket()
         session.threadSend()
     elif int(start) == 2:
-        r_session = recvClass(0,0,0)
+        global create_class_failed
+        create_class_failed = False
+        r_session = recvClass(0,0,0,False)
         r_session.getConnectionInfo()
         r_session.threadRecv()
         menu()
     elif int(start) == 3:
         print "Threads active: " + str(threading.activeCount())
+        print recvClientHandlers
         raw_input("Press return to contiue")
         menu()
     elif int(start) == 4:
