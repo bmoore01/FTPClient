@@ -13,9 +13,12 @@ from FTPClient import *
 sendClientHandlers = []
 recvClientHandlers = []
 activeRecvHosts = []
+portsInUse =[]
 kill = None
 stop = None
 create_class_failed = None
+port_already_taken = None
+listening = False
 
 '''These three variables count the connection, recieve and send errors the program
 comes across so they can provide information to the user that the sends have failed since
@@ -38,33 +41,37 @@ class fileTrans:
           self.load = loading_screen()
           self.sender = sender
       def getConnectionInfo(self):
+          addressInUse = False
           print"Please enter the address for the server you're trying to connect to"
           self.host = raw_input(">>")
           global activeRecvHosts
           for address in activeRecvHosts:
               if self.host == address:
                   print "This client is already listening for that address"
-                  if self.port == address:
-                      print "the default FTP port (port20) port is already in use would you like to select another port?y/n"
-                      select_port = Raw_input('->')
-                      if select_port[0:].lower() == 'y':
+                  addressInUse = True
+          for port in portsInUse:
+              if self.port == port and addressInUse == False:
+                  print "the default FTP port (port20) port is already in use would you like to select another port?y/n"
+                  select_port = raw_input('->')
+                  if select_port[0:].lower() == 'y':
+                      new_port = None
+                      while isInt(new_port) == False:
                           print "Please enter the port you'd like to use"
-                          self.port = raw_input('->')
-                      elif select_port[0:].lower() == 'n':
-                          print "Returning to main menu"
-                          global create_class_failed
-                          create_class_failed = True
-                  global create_class_failed
-                  create_class_failed = True
+                          new_port = raw_input('->')
+                          self.port = int(new_port)
+                  elif select_port[0:].lower() == 'n':
+                      print "Returning to main menu"
+                      global create_class_failed
+                      create_class_failed = True
           if self.host not in activeRecvHosts:
               activeRecvHosts.append(self.host)
-              activeRecvHosts.append(self.port)
+          if self.port not in portsInUse:
+              portsInUse.append(self.port)
           #If statement used just for making testing easier
           '''if len(str(self.host)) == 0:
               self.host = "127.0.0.1"'''
           try:
               self.remote_ip = socket.gethostbyname( self.host )
-              print self.remote_ip
           except socket.gaierror:
               #Line below for bug fixing
               print "hostname could not resolve, make sure you are connected to the internet"
@@ -120,11 +127,18 @@ class sendClass(fileTrans):
 
 class recvClass(fileTrans):
     def recvFile(self):
+        global listening
+        listening = True
         tLock.acquire()
         global create_class_failed
         if create_class_failed == True:
             menu()
-        self.sock.bind((self.host,self.port))
+        try:
+            self.sock.bind((self.host,self.port))
+        except:
+            menu()
+            global listening
+            listening = False
         #print "Socket binded!"
         self.sock.listen(10)
         #print "Socket now listening..."
@@ -143,6 +157,8 @@ class recvClass(fileTrans):
             f.write(decoded_file)
             f.close()
             break
+        global listening
+        listening = False
         conn.close()
         self.sock.close()
     def threadRecv(self):
@@ -182,3 +198,9 @@ class loading_screen(threading.Thread):
             print '\b\b\b\b File sending canceled!'
         else:
             print '\b\b File sending completed!'
+def isInt(num):
+    try:
+        int(num)
+        return True
+    except:
+        return False

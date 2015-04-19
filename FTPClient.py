@@ -15,12 +15,21 @@ def menu():
             print "Input cannot be blank!"
             start = raw_input(">>")
             i += 1
+        global listening
+        if listening == False:
+            print "Client is not currently listening for any connections"
+        else:
+            print "Client is currently listening for " + recvClientHandlers.length() + " connections."
     if int(start) == 1:
         session = sendClass(0,0,0,True)
         session.getConnectionInfo()
         session.connectSocket()
         session.threadSend()
     elif int(start) == 2:
+        global listening
+        if listening == True:
+            print "Already listening for incomming connections... "
+            menu()
         global create_class_failed
         create_class_failed = False
         r_session = recvClass(0,0,0,False)
