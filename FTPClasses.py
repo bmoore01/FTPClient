@@ -10,10 +10,7 @@ from FTPClient import *
 
 #These two lists will hold the threads which are created
 #when the user tells the program to send or recieve a file
-sendClientHandlers = []
-recvClientHandlers = []
-activeRecvHosts = []
-portsInUse =[]
+
 kill = None
 stop = None
 create_class_failed = None
@@ -102,7 +99,7 @@ class sendClass(fileTrans):
     def threadSend(self):
         t1 = threading.Thread(target=self.sendFile)
         global sendClientHandlers
-        sendClientHandlers.append(t1)
+        config.sendClientHandlers.append(t1)
         t1.setDaemon(True)
         t1.start()
         t1.join()
@@ -151,7 +148,7 @@ class recvClass(fileTrans):
         else:
             t2 = threading.Thread(target=self.recvFile)
             global recvClientHandlers
-            recvClientHandlers.append(t2)
+            config.recvClientHandlers.append(t2)
             t2.setDaemon(True)
             t2.start()
             t2 = None
@@ -181,6 +178,10 @@ class loading_screen(threading.Thread):
             print '\b\b\b\b File sending canceled!'
         else:
             print '\b\b File sending completed!'
+
+#This is just a simple function to check if a string can be converted to an interger
+#It is used if the user wants to manually enter a port
+
 def isInt(num):
     try:
         int(num)
