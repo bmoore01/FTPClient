@@ -13,10 +13,7 @@ from FTPClient import *
 
 kill = None
 stop = None
-create_class_failed = None
-port_already_taken = None
-global listening
-listening = False
+
 
 '''These three variables count the connection, recieve and send errors the program
 comes across so they can provide information to the user that the sends have failed since
@@ -42,22 +39,23 @@ class fileTrans:
       def getConnectionInfo(self):
           print"Please enter the address for the server you're trying to connect to"
           self.host = raw_input(">>")
-          #If statement used just for making testing easier
-          print "Do you want to open more than one connection to this machine?y/n"
-          usrMultiConn = raw_input("->")
-          if usrMultiConn[0].lower() == 'y':
-              print "How many connections do you want to open to this machine?"
-              usrInputConn = raw_input(">>")
-              while isInt(usrInputConn) == False:
-                  print "That's not a number please try again"
-                  usrInputConn = raw_input(">>")
-              self.conNum = int(usrInputConn)
-          else:
-            try:
-                self.remote_ip = socket.gethostbyname( self.host )
-            except socket.gaierror:
-                print "hostname could not resolve, make sure you are connected to the internet"
-                menu()
+          if self.sender == False:
+              usrMultiConn = 'x'
+              while usrMultiConn != 'y' and usrMultiConn != 'n':
+                  print "Do you want to open more than one connection to this machine?y/n"
+                  usrMultiConn = raw_input("->")
+                  if usrMultiConn[:1].lower() == 'y':
+                      print "How many connections do you want to open to this machine?"
+                      usrInputConn = raw_input(">>")
+                      while isInt(usrInputConn) == False:
+                          print "That's not a number please try again"
+                          usrInputConn = raw_input(">>")
+                          self.conNum = int(usrInputConn)
+          try:
+            self.remote_ip = socket.gethostbyname( self.host )
+          except socket.gaierror:
+            print "hostname could not resolve, make sure you are connected to the internet"
+            menu()
       def connectSocket(self):
           try:
               self.sock.connect((self.remote_ip, self.port))
@@ -111,8 +109,7 @@ class recvClass(fileTrans):
     def recvFile(self):
         config.listening = True
         tLock.acquire()
-        global create_class_failed
-        if create_class_failed == True:
+        if config.create_class_failed == True:
             menu()
         try:
             self.sock.bind((self.host,self.port))
@@ -142,8 +139,7 @@ class recvClass(fileTrans):
         conn.close()
         self.sock.close()
     def threadRecv(self):
-        global create_class_failed
-        if create_class_failed == True:
+        if config.create_class_failed == True:
             menu()
         else:
             t2 = threading.Thread(target=self.recvFile)
@@ -158,7 +154,7 @@ class loading_screen(threading.Thread):
     def run(self):
         global stop
         global kill
-        print "File currently sending..."
+        print "Working..."
         sys.stdout.flush()
         i = 0
         while stop != True:
@@ -175,9 +171,9 @@ class loading_screen(threading.Thread):
             time.sleep(0.2)
             i+=1
         if kill == True:
-            print '\b\b\b\b File sending canceled!'
+            print '\b\b\b\b Canceled!'
         else:
-            print '\b\b File sending completed!'
+            print '\b\b Completed!'
 
 #This is just a simple function to check if a string can be converted to an interger
 #It is used if the user wants to manually enter a port

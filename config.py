@@ -3,3 +3,4 @@
 listening = False
 sendClientHandlers = []
 recvClientHandlers = []
+create_class_failed = None

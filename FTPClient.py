@@ -24,8 +24,7 @@ def menu():
             print "Already listening for incomming connections... "
             menu()
         else:
-            global create_class_failed
-            create_class_failed = False
+            config.create_class_failed = False
             r_session = recvClass(0,0,0,False)
             r_session.getConnectionInfo()
             r_session.threadRecv()
