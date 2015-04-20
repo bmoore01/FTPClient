@@ -1,8 +1,7 @@
 #!/usr/bin/python
 from FTPClasses import *
 import threading
-
-
+import config
 
 def menu():
     print 'You can either\n1:Send a file\n2:Recieve a file\n3:look at your transfers\n4:quit'
@@ -15,27 +14,22 @@ def menu():
             print "Input cannot be blank!"
             start = raw_input(">>")
             i += 1
-        global listening
-        if listening == False:
-            print "Client is not currently listening for any connections"
-        else:
-            print "Client is currently listening for " + recvClientHandlers.length() + " connections."
     if int(start) == 1:
         session = sendClass(0,0,0,True)
         session.getConnectionInfo()
         session.connectSocket()
         session.threadSend()
     elif int(start) == 2:
-        global listening
-        if listening == True:
+        if config.listening == True:
             print "Already listening for incomming connections... "
             menu()
-        global create_class_failed
-        create_class_failed = False
-        r_session = recvClass(0,0,0,False)
-        r_session.getConnectionInfo()
-        r_session.threadRecv()
-        menu()
+        else:
+            global create_class_failed
+            create_class_failed = False
+            r_session = recvClass(0,0,0,False)
+            r_session.getConnectionInfo()
+            r_session.threadRecv()
+            menu()
     elif int(start) == 3:
         print "Threads active: " + str(threading.activeCount())
         print recvClientHandlers
@@ -57,9 +51,6 @@ def main():
     print "|  _|   | | |  __/| |_| |_|"
     print "|_|     |_| |_|    \__, (_)"
     print "                   |___/   "
-    clientHandlers =[]
-    send_errors = 0
-    conn_errors = 0
     menu()
 
 

@@ -4,7 +4,7 @@ import base64
 import threading
 import os
 import time
-import tarfile
+import config
 #This file will contain all class definitions for the the FTPy program
 from FTPClient import *
 
@@ -18,6 +18,7 @@ kill = None
 stop = None
 create_class_failed = None
 port_already_taken = None
+global listening
 listening = False
 
 '''These three variables count the connection, recieve and send errors the program
@@ -40,42 +41,26 @@ class fileTrans:
           self.remote_ip = remote_ip
           self.load = loading_screen()
           self.sender = sender
+          self.conNum = 1
       def getConnectionInfo(self):
-          addressInUse = False
           print"Please enter the address for the server you're trying to connect to"
           self.host = raw_input(">>")
-          global activeRecvHosts
-          for address in activeRecvHosts:
-              if self.host == address:
-                  print "This client is already listening for that address"
-                  addressInUse = True
-          for port in portsInUse:
-              if self.port == port and addressInUse == False:
-                  print "the default FTP port (port20) port is already in use would you like to select another port?y/n"
-                  select_port = raw_input('->')
-                  if select_port[0:].lower() == 'y':
-                      new_port = None
-                      while isInt(new_port) == False:
-                          print "Please enter the port you'd like to use"
-                          new_port = raw_input('->')
-                          self.port = int(new_port)
-                  elif select_port[0:].lower() == 'n':
-                      print "Returning to main menu"
-                      global create_class_failed
-                      create_class_failed = True
-          if self.host not in activeRecvHosts:
-              activeRecvHosts.append(self.host)
-          if self.port not in portsInUse:
-              portsInUse.append(self.port)
           #If statement used just for making testing easier
-          '''if len(str(self.host)) == 0:
-              self.host = "127.0.0.1"'''
-          try:
-              self.remote_ip = socket.gethostbyname( self.host )
-          except socket.gaierror:
-              #Line below for bug fixing
-              print "hostname could not resolve, make sure you are connected to the internet"
-              menu()
+          print "Do you want to open more than one connection to this machine?y/n"
+          usrMultiConn = raw_input("->")
+          if usrMultiConn[0].lower() == 'y':
+              print "How many connections do you want to open to this machine?"
+              usrInputConn = raw_input(">>")
+              while isInt(usrInputConn) == False:
+                  print "That's not a number please try again"
+                  usrInputConn = raw_input(">>")
+              self.conNum = int(usrInputConn)
+          else:
+            try:
+                self.remote_ip = socket.gethostbyname( self.host )
+            except socket.gaierror:
+                print "hostname could not resolve, make sure you are connected to the internet"
+                menu()
       def connectSocket(self):
           try:
               self.sock.connect((self.remote_ip, self.port))
@@ -127,8 +112,7 @@ class sendClass(fileTrans):
 
 class recvClass(fileTrans):
     def recvFile(self):
-        global listening
-        listening = True
+        config.listening = True
         tLock.acquire()
         global create_class_failed
         if create_class_failed == True:
@@ -140,7 +124,7 @@ class recvClass(fileTrans):
             global listening
             listening = False
         #print "Socket binded!"
-        self.sock.listen(10)
+        self.sock.listen(self.conNum)
         #print "Socket now listening..."
         tLock.release()
         conn, addr = self.sock.accept()
@@ -157,8 +141,7 @@ class recvClass(fileTrans):
             f.write(decoded_file)
             f.close()
             break
-        global listening
-        listening = False
+        config.listening = False
         conn.close()
         self.sock.close()
     def threadRecv(self):
