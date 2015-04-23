@@ -1,0 +1,3 @@
+S'This is a test file!\n'
+p0
+.

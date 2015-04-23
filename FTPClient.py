@@ -4,9 +4,14 @@ import threading
 import config
 
 def menu():
-    if config.menuExecutionCounter < 1:
+    inputTest = 0
+    start = 'x'
+    while isInt(start) == False:
         print 'You can either\n1:Send a file\n2:Recieve a file\n3:look at your transfers\n4:quit'
-    start = raw_input(">>")
+        if inputTest > 0:
+            print "Input must be a number"
+        start = raw_input(">>")
+        inputTest += 1
     i = 0
     while len(start) < 1:
         if i >= 1:
@@ -23,19 +28,16 @@ def menu():
     elif int(start) == 2:
         if config.listening == True:
             print "Already listening for incomming connections... "
-            config.menuExecutionCounter = 0
             menu()
         else:
             config.create_class_failed = False
             r_session = recvClass(0,0,0,False)
             r_session.getConnectionInfo()
             r_session.threadRecv()
-            config.menuExecutionCounter += 1
             menu()
     elif int(start) == 3:
         print "Threads active: " + str(threading.activeCount())
-        print config.recvClientHandlers
-        print config.sendClientHandlers
+        print recvClientHandlers
         raw_input("Press return to contiue")
         menu()
     elif int(start) == 4:
@@ -43,6 +45,8 @@ def menu():
         sys.exit()
     else:
         print "That's not a valid response please try again"
+    print "Operations complete"
+    print "Socket connection complete!"
 
 def main():
     print "Welcome to"
