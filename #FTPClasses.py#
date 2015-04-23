@@ -96,6 +96,7 @@ class sendClass(fileTrans):
             sys.exit()
     def threadSend(self):
         t1 = threading.Thread(target=self.sendFile)
+        global sendClientHandlers
         config.sendClientHandlers.append(t1)
         t1.setDaemon(True)
         t1.start()
@@ -138,15 +139,16 @@ class recvClass(fileTrans):
         conn.close()
         self.sock.close()
     def threadRecv(self):
+        if config.create_class_failed == True:
+            menu()
+        else:
             t2 = threading.Thread(target=self.recvFile)
+            global recvClientHandlers
             config.recvClientHandlers.append(t2)
             t2.setDaemon(True)
             t2.start()
             t2 = None
             time.sleep(1)
-
-'''This class is initialized inside other classes functions
-in order to display the spinning '/' character while the program is completeing another task'''
 
 class loading_screen(threading.Thread):
     def run(self):
